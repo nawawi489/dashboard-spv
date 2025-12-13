@@ -1,0 +1,8 @@
+{
+  "name": "SPV Outlet Checklist",
+  "description": "Daily operational checklist dashboard for SPV Outlets with photo evidence submission.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
