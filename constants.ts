@@ -1,8 +1,11 @@
 const env = (import.meta as any).env || {};
-const base = env.VITE_API_BASE_URL;
-if (!base) {
-  throw new Error('VITE_API_BASE_URL tidak terkonfigurasi. Set di environment untuk produksi.');
+// Fallback to the known URL if environment variable is missing (prevents crash on Vercel)
+const base = env.VITE_API_BASE_URL || 'https://n8n.srv1123014.hstgr.cloud';
+
+if (!env.VITE_API_BASE_URL) {
+  console.warn('VITE_API_BASE_URL tidak ditemukan, menggunakan default URL.');
 }
+
 export const API_BASE_URL = base;
 
 export const ENDPOINTS = {
