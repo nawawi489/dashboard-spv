@@ -14,15 +14,43 @@ const FileUpload: React.FC<FileUploadProps> = ({ label, onFileSelect, required =
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Format gambar tidak didukung');
+        return;
+      }
       if (file.size > 5 * 1024 * 1024) {
         alert('Ukuran file terlalu besar (Maks 5MB)');
         return;
       }
-      setFileName(file.name);
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result as string);
-      reader.readAsDataURL(file);
-      onFileSelect(file);
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.src = url;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        let w = img.width;
+        let h = img.height;
+        const MAX = 1600;
+        if (w > h && w > MAX) { h = Math.round(h * (MAX / w)); w = MAX; }
+        if (h >= w && h > MAX) { w = Math.round(w * (MAX / h)); h = MAX; }
+        canvas.width = w;
+        canvas.height = h;
+        if (!ctx) { URL.revokeObjectURL(url); return; }
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setPreview(dataUrl);
+        const byteString = atob(dataUrl.split(',')[1]);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) { ia[i] = byteString.charCodeAt(i); }
+        const blob = new Blob([ab], { type: 'image/jpeg' });
+        const safeName = file.name.replace(/\.[^.]+$/, '.jpg');
+        const sanitized = new File([blob], safeName, { type: 'image/jpeg' });
+        setFileName(safeName);
+        onFileSelect(sanitized);
+        URL.revokeObjectURL(url);
+      };
     }
   };
 
@@ -43,7 +71,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ label, onFileSelect, required =
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
               <Upload className="w-8 h-8 mb-2 text-gray-400" />
               <p className="text-sm text-gray-500 font-medium">Klik untuk upload gambar</p>
-              <p className="text-xs text-gray-400">SVG, PNG, JPG (MAX. 5MB)</p>
+              <p className="text-xs text-gray-400">PNG, JPG, WEBP (MAX. 5MB)</p>
             </div>
             <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
           </label>

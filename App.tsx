@@ -9,6 +9,7 @@ import TaskCard from '@features/daily/TaskCard';
 import DepositForm from '@features/deposit/DepositForm';
 import Login from '@features/auth/Login';
 import PODashboard from '@features/po/PODashboard';
+import StockDashboard from '@features/stock/StockDashboard';
 import { Loader2, RefreshCw, Filter, ChevronDown, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { getTodayDateJakarta } from '@utils/date';
 
@@ -175,11 +176,19 @@ function App() {
     }));
   };
 
-  const handleFeatureSelect = (feature: 'TASK' | 'DEPOSIT' | 'PO') => {
+  const handleFeatureSelect = (feature: 'TASK' | 'DEPOSIT' | 'PO' | 'STOCK') => {
     if (feature === 'TASK') {
-      loadTasks(state.selectedOutlet, state.selectedDate);
+      // Immediate feedback: switch view and show loading
+      setIsLoading(true);
+      setState(prev => ({ ...prev, view: AppView.CHECKLIST, tasks: [] }));
+      // Use setTimeout to allow render cycle to update UI before heavy processing
+      setTimeout(() => {
+        loadTasks(state.selectedOutlet, state.selectedDate);
+      }, 0);
     } else if (feature === 'DEPOSIT') {
       setState(prev => ({ ...prev, view: AppView.DEPOSIT }));
+    } else if (feature === 'STOCK') {
+      setState(prev => ({ ...prev, view: AppView.STOCK }));
     } else {
       setState(prev => ({ ...prev, view: AppView.PO }));
     }
@@ -189,6 +198,9 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
+      // Force UI update before starting fetch/processing
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       // PASS OUTLET NAME TO API
       const tasks = await fetchTasks(outlet);
       
@@ -203,20 +215,49 @@ function App() {
         `tgl${day}`
       ];
 
+      // Optimization: Find the column name once
+      let dateColumnKey: string | null = null;
+      const normalize = (s: string) => String(s).toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+
+      // Look for the key in the first few tasks
+      for (let i = 0; i < Math.min(tasks.length, 5); i++) {
+        const task = tasks[i];
+        for (const key of Object.keys(task)) {
+           if (variants.includes(normalize(key))) {
+             dateColumnKey = key;
+             break;
+           }
+        }
+        if (dateColumnKey) break;
+      }
+
       tasks.forEach(task => {
         let matched = false;
-        for (const key of Object.keys(task)) {
-          const norm = String(key).toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
-          if (variants.includes(norm)) {
-            const val = (task as any)[key];
-            if ((typeof val === 'string' && val.trim().length > 0) ||
+        
+        // Fast path: if we found the column key, check it directly
+        if (dateColumnKey && (task as any)[dateColumnKey] !== undefined) {
+             const val = (task as any)[dateColumnKey];
+             if ((typeof val === 'string' && val.trim().length > 0) ||
                 (typeof val === 'number' && !isNaN(val) && val !== 0) ||
                 (typeof val === 'boolean' && val)) {
               matched = true;
-              break;
             }
-          }
+        } else {
+            // Fallback: check all keys
+            for (const key of Object.keys(task)) {
+              const norm = normalize(key);
+              if (variants.includes(norm)) {
+                const val = (task as any)[key];
+                if ((typeof val === 'string' && val.trim().length > 0) ||
+                    (typeof val === 'number' && !isNaN(val) && val !== 0) ||
+                    (typeof val === 'boolean' && val)) {
+                  matched = true;
+                  break;
+                }
+              }
+            }
         }
+
         if (matched) {
           preCompletedIds.push(getTaskId(task));
         }
@@ -224,10 +265,9 @@ function App() {
 
       setState(prev => ({
         ...prev,
+        // View is already CHECKLIST, but we confirm it here
         view: AppView.CHECKLIST,
         tasks: tasks,
-        // Sync completedTasks with the data from the sheet (pre-filled columns)
-        // This ensures if "Tanggal 1" is filled, it shows as done.
         completedTasks: preCompletedIds
       }));
       setActiveCategory('SEMUA');
@@ -255,7 +295,7 @@ function App() {
   };
 
   const handleBack = () => {
-    if (state.view === AppView.CHECKLIST || state.view === AppView.DEPOSIT || state.view === AppView.PO) {
+    if (state.view === AppView.CHECKLIST || state.view === AppView.DEPOSIT || state.view === AppView.PO || state.view === AppView.STOCK) {
       setState(prev => ({ ...prev, view: AppView.SELECT_FEATURE }));
     } else if (state.view === AppView.SELECT_FEATURE) {
       setState(prev => ({ ...prev, view: AppView.SELECT_OUTLET }));
@@ -384,27 +424,24 @@ function App() {
     const taskStartIndex = (taskPage - 1) * TASK_PAGE_SIZE;
     const paginatedTasks = filteredTasks.slice(taskStartIndex, taskStartIndex + TASK_PAGE_SIZE);
 
+    if (isLoading && state.tasks.length === 0) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500 gap-4">
+          <Loader2 size={48} className="animate-spin text-blue-600" />
+          <p className="font-medium animate-pulse">Memuat daftar tugas...</p>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-slate-50 pb-12">
-        {/* Loading Overlay during Reload */}
-        {isLoading && (
-          <div className="fixed inset-0 z-[60] bg-white/50 backdrop-blur-sm flex items-center justify-center">
-             <div className="bg-white p-4 rounded-2xl shadow-xl flex flex-col items-center gap-3 border border-slate-100">
-                <Loader2 size={32} className="animate-spin text-blue-600" />
-                <p className="text-sm font-medium text-slate-600">Memuat data...</p>
-             </div>
-          </div>
-        )}
-
         <Header 
           title={state.selectedOutlet} 
           subtitle={state.selectedDate} 
           onBack={handleBack}
           onReload={() => loadTasks(state.selectedOutlet, state.selectedDate)}
           progress={progress}
-          
         />
-        
         
         <main className="max-w-md mx-auto p-4 space-y-4">
           {error && (
@@ -530,6 +567,15 @@ function App() {
         </div>
         <Footer />
       </div>
+    );
+  }
+
+  if (state.view === AppView.STOCK) {
+    return (
+      <StockDashboard
+        outlet={state.selectedOutlet}
+        onBack={handleBack}
+      />
     );
   }
 

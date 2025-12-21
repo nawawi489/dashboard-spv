@@ -1,4 +1,9 @@
-export const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || "https://n8n.srv1123014.hstgr.cloud";
+const env = (import.meta as any).env || {};
+const base = env.VITE_API_BASE_URL;
+if (!base) {
+  throw new Error('VITE_API_BASE_URL tidak terkonfigurasi. Set di environment untuk produksi.');
+}
+export const API_BASE_URL = base;
 
 export const ENDPOINTS = {
   GET_TASKS: `${API_BASE_URL}/webhook/get-task-spv`,
@@ -7,6 +12,8 @@ export const ENDPOINTS = {
   GET_CASH_SUM: `${API_BASE_URL}/webhook/setoran-tunai`,
   GET_PO_LIST: `${API_BASE_URL}/webhook/list-permintaan-po`,
   CONFIRM_PO: `${API_BASE_URL}/webhook/spv-konfirmasi-po-tiba`,
+  GET_DB_BARANG: `${API_BASE_URL}/webhook/get-barang`,
+  SUBMIT_STOCK_USAGE: `${API_BASE_URL}/webhook/submit-penggunaan-barang`
 };
 
 export const OUTLETS = [

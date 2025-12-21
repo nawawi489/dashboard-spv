@@ -24,6 +24,7 @@ export enum AppView {
   CHECKLIST = 'CHECKLIST',
   DEPOSIT = 'DEPOSIT',
   PO = 'PO',
+  STOCK = 'STOCK',
   SUCCESS = 'SUCCESS'
 }
 
@@ -82,3 +83,23 @@ export interface ConfirmData {
   keterangan_spv?: string;
   tanggal_konfirmasi: string;
 }
+
+export interface StockItem {
+  id: string;
+  nama_barang: string;
+  satuan: string;
+  kategori?: string;
+}
+
+export interface StockUsageItemSubmission {
+  outlet: string;
+  tanggal: string;
+  id_barang: string;
+  nama_barang: string;
+  jumlah_pakai: number;
+  satuan: string;
+  keterangan?: string;
+  timestamp: string;
+}
+
+export type StockUsageSubmission = StockUsageItemSubmission[];

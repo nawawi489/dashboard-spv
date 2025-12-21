@@ -23,6 +23,8 @@ const PODashboard: React.FC<PODashboardProps> = ({ outlet, onBack }) => {
   const [barangFile, setBarangFile] = useState<File | null>(null);
   const [jumlahDiterima, setJumlahDiterima] = useState<number>(0);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [confirmedIds, setConfirmedIds] = useState<string[]>([]); // Track locally confirmed items
+
   const reloadPO = async () => {
     setLoading(true);
     setError(null);
@@ -30,6 +32,8 @@ const PODashboard: React.FC<PODashboardProps> = ({ outlet, onBack }) => {
       const data = await fetchPOList();
       const filtered = data.filter(item => String(item.outlet).trim().toLowerCase() === String(outlet).trim().toLowerCase());
       setList(filtered);
+      // Reset confirmed list on reload since data is fresh
+      setConfirmedIds([]);
       setCurrentPage(1);
       setActive(null);
     } catch (e) {
@@ -81,9 +85,14 @@ const PODashboard: React.FC<PODashboardProps> = ({ outlet, onBack }) => {
         tanggal_konfirmasi: getTodayDateJakarta(),
       };
       await confirmPO(payload);
+      
+      // Mark as confirmed locally
+      setConfirmedIds(prev => [...prev, active.id_transaksi]);
+      
       setActive(null);
-      const refreshed = await fetchPOList();
-      setList(refreshed.filter(item => String(item.outlet).trim().toLowerCase() === String(outlet).trim().toLowerCase()));
+      // Optional: Don't immediately reload to show the "Terkonfirmasi" state
+      // const refreshed = await fetchPOList();
+      // setList(refreshed.filter(item => String(item.outlet).trim().toLowerCase() === String(outlet).trim().toLowerCase()));
     } catch (e) {
       setError('Gagal mengirim konfirmasi');
     } finally {
@@ -131,7 +140,12 @@ const PODashboard: React.FC<PODashboardProps> = ({ outlet, onBack }) => {
               <>
                 <div className="space-y-3">
                   {paginatedList.map((item, idx) => (
-                    <POCard key={`${item.id_transaksi}-${item.id_barang ?? idx}`} data={item} onConfirm={startConfirm} />
+                    <POCard 
+                      key={`${item.id_transaksi}-${item.id_barang ?? idx}`} 
+                      data={item} 
+                      onConfirm={startConfirm}
+                      isConfirmed={confirmedIds.includes(item.id_transaksi)}
+                    />
                   ))}
                 </div>
 

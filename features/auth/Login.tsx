@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, User, LogIn } from 'lucide-react';
+import { Lock, User, LogIn, Eye, EyeOff } from 'lucide-react';
 import Footer from '../../components/common/Footer';
 
 interface LoginProps {
@@ -9,6 +9,7 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const submit = (e: React.FormEvent) => {
@@ -49,14 +50,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         <form onSubmit={submit} className="bg-white p-6 rounded-2xl shadow-xl shadow-slate-200/50 space-y-6 border border-slate-100">
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <User size={16} className="text-blue-500" /> Nama
+              <User size={16} className="text-blue-500" /> Username
             </label>
             <input 
               type="text" 
               value={user} 
               onChange={(e) => setUser(e.target.value)} 
               className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              placeholder="Masukkan nama"
+              placeholder="Masukkan Username"
               required
             />
           </div>
@@ -65,14 +66,23 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
               <Lock size={16} className="text-blue-500" /> Password
             </label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              placeholder="Masukkan password"
-              required
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"} 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                className="w-full p-4 pr-12 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                placeholder="Masukkan password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           {error && (

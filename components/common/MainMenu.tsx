@@ -1,10 +1,10 @@
 import React from 'react';
-import { ClipboardList, Banknote, ArrowLeft, PackageCheck } from 'lucide-react';
+import { ClipboardList, Banknote, ArrowLeft, PackageCheck, Boxes } from 'lucide-react';
 import Footer from './Footer';
 
 interface MainMenuProps {
   outlet: string;
-  onSelectFeature: (feature: 'TASK' | 'DEPOSIT' | 'PO') => void;
+  onSelectFeature: (feature: 'TASK' | 'DEPOSIT' | 'PO' | 'STOCK') => void;
   onBack: () => void;
 }
 
@@ -60,6 +60,19 @@ const MainMenu: React.FC<MainMenuProps> = ({ outlet, onSelectFeature, onBack }) 
           <h3 className="text-lg font-bold text-slate-800 mb-2">Konfirmasi PO Masuk</h3>
           <p className="text-slate-500 text-sm">
             Verifikasi barang PO yang tiba di outlet.
+          </p>
+        </button>
+
+        <button
+          onClick={() => onSelectFeature('STOCK')}
+          className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-orange-200 transition-all group text-left"
+        >
+          <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 mb-4 group-hover:scale-110 transition-transform">
+            <Boxes size={28} />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-2">Pemakaian Stok</h3>
+          <p className="text-slate-500 text-sm">
+            Laporan pemakaian stok harian outlet.
           </p>
         </button>
       </div>

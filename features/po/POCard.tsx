@@ -6,13 +6,14 @@ import { formatRupiah } from '@utils/formatRupiah';
 interface POCardProps {
   data: POItem;
   onConfirm: (item: POItem) => void;
+  isConfirmed?: boolean;
 }
 
-const POCard: React.FC<POCardProps> = ({ data, onConfirm }) => {
+const POCard: React.FC<POCardProps> = ({ data, onConfirm, isConfirmed }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col h-full">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-3 flex justify-between items-center">
-        <span className="text-white font-mono text-sm font-semibold tracking-wider opacity-90">#{data.id_transaksi}</span>
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col h-full ${isConfirmed ? 'opacity-75 bg-slate-50' : ''}`}>
+      <div className={`bg-gradient-to-r ${isConfirmed ? 'from-green-600 to-green-700' : 'from-blue-600 to-blue-700'} px-5 py-3 flex justify-between items-center`}>
+        <span className="text-white font-mono text-sm font-semibold tracking-wider opacity-90">{data.id_barang || '-'}</span>
         <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full font-medium backdrop-blur-sm">PO</span>
       </div>
 
@@ -25,9 +26,7 @@ const POCard: React.FC<POCardProps> = ({ data, onConfirm }) => {
               <span>{data.outlet}</span>
             </div>
           </div>
-          {data.id_barang && (
-            <span className="text-[11px] font-mono font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded">{data.id_barang}</span>
-          )}
+          <span className="text-[11px] font-mono font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded">#{data.id_transaksi}</span>
         </div>
         <hr className="border-gray-100" />
         <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
@@ -58,12 +57,17 @@ const POCard: React.FC<POCardProps> = ({ data, onConfirm }) => {
 
         <div className="p-4 bg-gray-50 border-t border-gray-100">
         <button
-          onClick={() => onConfirm(data)}
-          aria-label="Konfirmasi Barang"
-          className="w-full bg-white border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group shadow-sm"
+          onClick={() => !isConfirmed && onConfirm(data)}
+          disabled={isConfirmed}
+          aria-label={isConfirmed ? "Terkonfirmasi" : "Konfirmasi Barang"}
+          className={`w-full font-medium py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group shadow-sm ${
+            isConfirmed 
+              ? 'bg-green-100 border border-green-200 text-green-700 cursor-default' 
+              : 'bg-white border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'
+          }`}
         >
-          <PackageCheck className="w-4 h-4 group-hover:scale-110 transition-transform" />
-          Konfirmasi Barang
+          <PackageCheck className={`w-4 h-4 ${!isConfirmed && 'group-hover:scale-110'} transition-transform`} />
+          {isConfirmed ? 'Terkonfirmasi' : 'Konfirmasi Barang'}
         </button>
       </div>
     </div>

@@ -4,7 +4,7 @@ export const normalizePOList = (raw: any): POItem[] => {
   const arr = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.data) ? raw.data : []);
   return (arr as any[])
     .filter(item => {
-      const statusOk = String(item.Status || '').toLowerCase() === 'terima';
+      const statusOk = String(item.VerifikasiFinance || '').toLowerCase() === 'terima';
       const v = item.VerifikasiSPV ?? item['VerifSPV'];
       const s = String(v).toLowerCase();
       const verifFalse = v === false || s === 'false' || v === 0 || s === '0';
