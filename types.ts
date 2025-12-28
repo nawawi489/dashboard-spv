@@ -81,6 +81,8 @@ export interface ConfirmData {
   foto_barang: File | null;
   nomor_invoice: string;
   keterangan_spv?: string;
+  produk_free?: number;
+  produk_free_satuan?: string;
   tanggal_konfirmasi: string;
 }
 

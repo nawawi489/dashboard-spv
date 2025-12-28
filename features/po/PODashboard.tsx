@@ -58,7 +58,7 @@ const PODashboard: React.FC<PODashboardProps> = ({ outlet, onBack }) => {
     setJumlahDiterima(0);
   };
 
-  const submitConfirm = async (data: { jumlahDiterima: number; satuan: string; nomorInvoice: string; notaFile: File | null; barangFile: File | null; }) => {
+  const submitConfirm = async (data: { jumlahDiterima: number; satuan: string; nomorInvoice: string; notaFile: File | null; barangFile: File | null; produkFree?: number; produkFreeUnit?: string; }) => {
     if (!active) return;
     if (!active.id_barang || !String(active.id_barang).trim()) { setError('ID BARANG wajib ada'); return; }
     if (!data.satuan || !String(data.satuan).trim()) { setError('Satuan barang wajib diisi'); return; }
@@ -82,6 +82,8 @@ const PODashboard: React.FC<PODashboardProps> = ({ outlet, onBack }) => {
         foto_nota: data.notaFile,
         foto_barang: data.barangFile,
         nomor_invoice: data.nomorInvoice,
+        produk_free: data.produkFree ?? 0,
+        produk_free_satuan: data.produkFreeUnit,
         tanggal_konfirmasi: getTodayDateJakarta(),
       };
       await confirmPO(payload);

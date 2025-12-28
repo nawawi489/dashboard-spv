@@ -33,6 +33,8 @@ export const confirmPO = async (data: ConfirmData): Promise<void> => {
     formData.append('status', data.jumlah_diterima >= data.jumlah_po ? 'DITERIMA' : 'KURANG');
     if (data.foto_nota) formData.append('foto_nota', data.foto_nota, data.foto_nota.name);
     if (data.foto_barang) formData.append('foto_barang', data.foto_barang, data.foto_barang.name);
+    formData.append('produk_free', String(typeof data.produk_free === 'number' ? data.produk_free : 0));
+    if (data.produk_free_satuan) formData.append('produk_free_satuan', data.produk_free_satuan);
 
     const response = await fetch(ENDPOINTS.CONFIRM_PO, { method: 'POST', body: formData });
     if (!response.ok) {

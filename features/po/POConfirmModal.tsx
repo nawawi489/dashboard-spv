@@ -7,7 +7,7 @@ interface POConfirmModalProps {
   item: POItem;
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: { jumlahDiterima: number; satuan: string; nomorInvoice: string; notaFile: File | null; barangFile: File | null; }) => void;
+  onSubmit: (data: { jumlahDiterima: number; satuan: string; nomorInvoice: string; notaFile: File | null; barangFile: File | null; produkFree?: number; produkFreeUnit?: string; }) => void;
 }
 
 const POConfirmModal: React.FC<POConfirmModalProps> = ({ item, open, onClose, onSubmit }) => {
@@ -16,6 +16,8 @@ const POConfirmModal: React.FC<POConfirmModalProps> = ({ item, open, onClose, on
   const [barangFile, setBarangFile] = useState<File | null>(null);
   const [satuan, setSatuan] = useState<string>(item.satuan || '');
   const [nomorInvoice, setNomorInvoice] = useState<string>('');
+  const [produkFree, setProdukFree] = useState<string>('');
+  const [produkFreeUnit, setProdukFreeUnit] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,13 +27,14 @@ const POConfirmModal: React.FC<POConfirmModalProps> = ({ item, open, onClose, on
     e.preventDefault();
     setError(null);
     if (!jumlahDiterima || parseInt(jumlahDiterima) < 0) { setError('Jumlah diterima tidak valid.'); return; }
+    if (produkFree && parseInt(produkFree) < 0) { setError('Produk free tidak boleh negatif.'); return; }
     if (!satuan || !satuan.trim()) { setError('Satuan barang wajib diisi.'); return; }
     if (!nomorInvoice || !nomorInvoice.trim()) { setError('Nomor invoice wajib diisi.'); return; }
     if (!notaFile) { setError('Foto Nota wajib diupload.'); return; }
     if (!barangFile) { setError('Foto Barang wajib diupload.'); return; }
     setIsSubmitting(true);
     try {
-      await onSubmit({ jumlahDiterima: parseInt(jumlahDiterima), satuan, nomorInvoice, notaFile, barangFile });
+      await onSubmit({ jumlahDiterima: parseInt(jumlahDiterima), satuan, nomorInvoice, notaFile, barangFile, produkFree: produkFree ? parseInt(produkFree) : 0, produkFreeUnit: produkFreeUnit || undefined });
     } finally {
       setIsSubmitting(false);
     }
@@ -74,6 +77,30 @@ const POConfirmModal: React.FC<POConfirmModalProps> = ({ item, open, onClose, on
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Jumlah Real Diterima <span className="text-red-500">*</span></label>
               <input type="number" min="0" value={jumlahDiterima} onChange={(e) => setJumlahDiterima(e.target.value)} className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Produk Free (opsional)</label>
+              <div className="flex items-center">
+                <input
+                  type="number"
+                  min="0"
+                  value={produkFree}
+                  onChange={(e) => setProdukFree(e.target.value)}
+                  className="flex-1 px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  placeholder="input produk free jika ada"
+                />
+                <select
+                  value={produkFreeUnit}
+                  onChange={(e) => setProdukFreeUnit(e.target.value)}
+                  className="px-3 h-[42px] bg-white text-gray-900 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                >
+                  <option value="">Satuan</option>
+                  <option value="Pcs">Pcs</option>
+                  <option value="Pack">Pack</option>
+                  <option value="Kg">Kg</option>
+                  <option value="Liter">Liter</option>
+                </select>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Satuan Barang <span className="text-red-500">*</span></label>
