@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { ArrowLeft, Search, Save, Loader2, CheckCircle2, Calendar, Minus, Plus } from 'lucide-react';
 import Footer from '../../components/common/Footer';
-import { fetchStockItems, submitStockUsage } from '../../services/stock';
+import { fetchStockItems, submitStockUsage, submitStockOpname } from '../../services/stock';
 import { StockItem } from '../../types';
 import { getTodayDateJakarta } from '../../utils/date';
 
 interface StockDashboardProps {
   outlet: string;
   onBack: () => void;
+  title?: string;
+  mode?: 'USAGE' | 'OPNAME';
 }
 
 interface UsageInput {
@@ -19,7 +21,7 @@ interface UsageInput {
 
 const PAGE_SIZE = 20;
 
-const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack }) => {
+const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack, title, mode = 'USAGE' }) => {
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,36 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(getTodayDateJakarta());
   const [currentPage, setCurrentPage] = useState(1);
+  const [draftSaved, setDraftSaved] = useState(false);
+
+  // Draft Key based on mode and outlet
+  const draftKey = `draft_stock_${mode.toLowerCase()}_${outlet}`;
+
+  // Load draft on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(draftKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          setUsage(parsed);
+        }
+      } catch (e) {
+        console.error("Failed to load draft", e);
+      }
+    }
+  }, [draftKey]);
+
+  // Save draft function
+  const saveDraft = () => {
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(usage));
+      setDraftSaved(true);
+      setTimeout(() => setDraftSaved(false), 2000);
+    } catch (e) {
+      alert("Gagal menyimpan draft (penyimpanan penuh?)");
+    }
+  };
 
   // Calculate date limits (today and 7 days ago)
   const dateLimits = useMemo(() => {
@@ -158,8 +190,16 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack }) => {
     }));
 
     try {
-      await submitStockUsage(payload);
+      if (mode === 'OPNAME') {
+        await submitStockOpname(payload);
+      } else {
+        await submitStockUsage(payload);
+      }
       setSuccess(true);
+      
+      // Clear draft on success
+      localStorage.removeItem(draftKey);
+
       setTimeout(() => {
         setSuccess(false);
         setUsage({});
@@ -191,7 +231,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack }) => {
              <ArrowLeft size={20} />
            </button>
            <div className="flex-1">
-             <h1 className="font-bold text-slate-800 text-lg">Pemakaian Stok</h1>
+             <h1 className="font-bold text-slate-800 text-lg">{title ?? 'Pemakaian Stok'}</h1>
              <div className="text-xs text-slate-500">{outlet}</div>
            </div>
            <div className="w-10" /> {/* Spacer */}
@@ -227,6 +267,12 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack }) => {
       </div>
 
       <main className="max-w-md mx-auto p-4 space-y-3 pb-32">
+        {draftSaved && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg z-50 animate-fade-in-down">
+            Draft tersimpan
+          </div>
+        )}
+
         {error && (
           <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200 text-sm text-center">
             {error}
@@ -252,10 +298,9 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack }) => {
               }`}
             >
               <div className="flex flex-col items-center gap-3">
-                <div className="flex items-center gap-2 text-center">
-                  <h3 className="font-semibold text-slate-800">{item.nama_barang}</h3>
-                  <div className="w-px h-4 bg-slate-300 mx-1"></div>
-                  <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md whitespace-nowrap">
+                <div className="text-center">
+                  <h3 className="font-semibold text-slate-800 mb-1">{item.nama_barang}</h3>
+                  <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md whitespace-nowrap inline-block">
                     {item.satuan}
                   </span>
                 </div>
@@ -318,10 +363,16 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack }) => {
 
       {/* Floating Submit Button */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-lg z-20">
-        <div className="max-w-md mx-auto flex items-center justify-between gap-4">
-          <div className="text-sm text-slate-500">
-            {Object.keys(usage).filter(k => usage[k].quantity && parseFloat(usage[k].quantity) > 0).length} item diisi
-          </div>
+        <div className="max-w-md mx-auto flex items-center justify-between gap-3">
+          <button
+            onClick={saveDraft}
+            className="bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+            title="Simpan Sementara"
+          >
+            <Save size={20} />
+            <span className="hidden sm:inline">Draft</span>
+          </button>
+          
           <button
             onClick={handleSubmit}
             disabled={submitting}
@@ -330,7 +381,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack }) => {
             {submitting ? (
               <Loader2 size={20} className="animate-spin" />
             ) : (
-              <Save size={20} />
+              <CheckCircle2 size={20} />
             )}
             Simpan Laporan
           </button>

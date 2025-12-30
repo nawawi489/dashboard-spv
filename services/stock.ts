@@ -40,3 +40,22 @@ export const submitStockUsage = async (data: StockUsageSubmission): Promise<void
     throw error;
   }
 };
+
+export const submitStockOpname = async (data: StockUsageSubmission): Promise<void> => {
+  try {
+    const response = await fetch(ENDPOINTS.SUBMIT_STOCK_OPNAME, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Gagal mengirim laporan stok opname');
+    }
+  } catch (error) {
+    console.error('Error submitting stock opname:', error);
+    throw error;
+  }
+};

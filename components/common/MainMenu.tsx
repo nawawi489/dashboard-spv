@@ -4,7 +4,7 @@ import Footer from './Footer';
 
 interface MainMenuProps {
   outlet: string;
-  onSelectFeature: (feature: 'TASK' | 'DEPOSIT' | 'PO' | 'STOCK') => void;
+  onSelectFeature: (feature: 'TASK' | 'DEPOSIT' | 'PO' | 'STOCK' | 'OPNAME') => void;
   onBack: () => void;
 }
 
@@ -73,6 +73,18 @@ const MainMenu: React.FC<MainMenuProps> = ({ outlet, onSelectFeature, onBack }) 
           <h3 className="text-lg font-bold text-slate-800 mb-2">Pemakaian Stok</h3>
           <p className="text-slate-500 text-sm">
             Laporan pemakaian stok harian outlet.
+          </p>
+        </button>
+        <button
+          onClick={() => onSelectFeature('OPNAME')}
+          className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-indigo-200 transition-all group text-left"
+        >
+          <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
+            <Boxes size={28} />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-2">Stok Opname</h3>
+          <p className="text-slate-500 text-sm">
+            Pencatatan jumlah fisik stok di outlet.
           </p>
         </button>
       </div>

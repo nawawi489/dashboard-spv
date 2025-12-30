@@ -16,7 +16,8 @@ export const ENDPOINTS = {
   GET_PO_LIST: `${API_BASE_URL}/webhook/list-permintaan-po`,
   CONFIRM_PO: `${API_BASE_URL}/webhook/spv-konfirmasi-po-tiba`,
   GET_DB_BARANG: `${API_BASE_URL}/webhook/get-barang`,
-  SUBMIT_STOCK_USAGE: `${API_BASE_URL}/webhook/submit-penggunaan-barang`
+  SUBMIT_STOCK_USAGE: `${API_BASE_URL}/webhook/submit-penggunaan-barang`,
+  SUBMIT_STOCK_OPNAME: `${API_BASE_URL}/webhook/stok-opname`
 };
 
 export const OUTLETS = [

@@ -15,7 +15,8 @@ import { getTodayDateJakarta } from '@utils/date';
 
 const STORAGE_KEY = 'spv_checklist_state';
 const SESSION_KEY = 'spv_session';
-const SESSION_DURATION_MS = 12 * 60 * 60 * 1000; // 12 hours
+// Remove fixed duration, use absolute time check instead
+// const SESSION_DURATION_MS = 12 * 60 * 60 * 1000; 
 
 interface NotificationState {
   id: number;
@@ -36,7 +37,36 @@ function App() {
           try {
             const s = JSON.parse(sessionRaw);
             if (s && typeof s.loginAt === 'number' && typeof s.user === 'string') {
-              const expiresAt = s.loginAt + SESSION_DURATION_MS;
+              // Calculate expiration time: 23:30 WITA of the login day (or next day if login is late)
+              // WITA is UTC+8. 23:30 WITA = 15:30 UTC
+              
+              const loginTime = new Date(s.loginAt);
+              // Target: Today 23:30 WITA
+              // To handle this simply:
+              // We set expiration to the next occurrence of 23:30 WITA after login
+              
+              const getExpirationTime = (loginMs: number) => {
+                const d = new Date(loginMs);
+                // Adjust to Jakarta/WIB (UTC+7) or just use local time logic if device is in WITA
+                // Since we want strict 23:30 WITA, we need to be careful with timezones.
+                // Assuming device time is correct local time (WITA).
+                // If we want to be safe, we can just use local 23:30.
+                
+                const target = new Date(d);
+                target.setHours(23, 30, 0, 0);
+                
+                // If login was after 23:30, expire next day 23:30? 
+                // Or maybe just expire immediately? 
+                // Let's assume login is valid until the UPCOMING 23:30.
+                // If login is at 23:45, it should probably be valid until TOMORROW 23:30.
+                if (d.getTime() > target.getTime()) {
+                  target.setDate(target.getDate() + 1);
+                }
+                return target.getTime();
+              };
+
+              const expiresAt = getExpirationTime(s.loginAt);
+
               if (Date.now() < expiresAt) {
                 sessionValid = true;
                 parsed.user = s.user;
@@ -110,15 +140,28 @@ function App() {
     setTaskPage(1);
   }, [activeCategory, state.tasks]);
 
-  // Auto logout when session expires (12h)
+  // Auto logout when session expires (23:30 Local Time)
   useEffect(() => {
     if (state.loginAt) {
-      const expiresAt = state.loginAt + SESSION_DURATION_MS;
+      const getExpirationTime = (loginMs: number) => {
+        const d = new Date(loginMs);
+        const target = new Date(d);
+        target.setHours(23, 30, 0, 0);
+        if (d.getTime() > target.getTime()) {
+          target.setDate(target.getDate() + 1);
+        }
+        return target.getTime();
+      };
+
+      const expiresAt = getExpirationTime(state.loginAt);
       const remaining = expiresAt - Date.now();
+      
       if (remaining <= 0) {
         logout();
         return;
       }
+      
+      // Set timeout only if remaining time is reasonable (< 24h)
       const timer = setTimeout(() => logout(), remaining);
       return () => clearTimeout(timer);
     }
@@ -176,7 +219,9 @@ function App() {
     }));
   };
 
-  const handleFeatureSelect = (feature: 'TASK' | 'DEPOSIT' | 'PO' | 'STOCK') => {
+  const [stockMode, setStockMode] = useState<'USAGE' | 'OPNAME'>('USAGE');
+
+  const handleFeatureSelect = (feature: 'TASK' | 'DEPOSIT' | 'PO' | 'STOCK' | 'OPNAME') => {
     if (feature === 'TASK') {
       // Immediate feedback: switch view and show loading
       setIsLoading(true);
@@ -188,6 +233,10 @@ function App() {
     } else if (feature === 'DEPOSIT') {
       setState(prev => ({ ...prev, view: AppView.DEPOSIT }));
     } else if (feature === 'STOCK') {
+      setStockMode('USAGE');
+      setState(prev => ({ ...prev, view: AppView.STOCK }));
+    } else if (feature === 'OPNAME') {
+      setStockMode('OPNAME');
       setState(prev => ({ ...prev, view: AppView.STOCK }));
     } else {
       setState(prev => ({ ...prev, view: AppView.PO }));
@@ -575,6 +624,8 @@ function App() {
       <StockDashboard
         outlet={state.selectedOutlet}
         onBack={handleBack}
+        title={stockMode === 'OPNAME' ? 'Stok Opname' : 'Pemakaian Stok'}
+        mode={stockMode}
       />
     );
   }
