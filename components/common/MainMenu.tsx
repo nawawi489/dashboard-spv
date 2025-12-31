@@ -63,7 +63,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ outlet, onSelectFeature, onBack }) 
           </p>
         </button>
 
-        <button
+        {/* <button
           onClick={() => onSelectFeature('STOCK')}
           className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-orange-200 transition-all group text-left"
         >
@@ -74,7 +74,7 @@ const MainMenu: React.FC<MainMenuProps> = ({ outlet, onSelectFeature, onBack }) 
           <p className="text-slate-500 text-sm">
             Laporan pemakaian stok harian outlet.
           </p>
-        </button>
+        </button> */}
         <button
           onClick={() => onSelectFeature('OPNAME')}
           className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-indigo-200 transition-all group text-left"

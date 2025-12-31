@@ -99,6 +99,7 @@ const POConfirmModal: React.FC<POConfirmModalProps> = ({ item, open, onClose, on
                   <option value="Pack">Pack</option>
                   <option value="Kg">Kg</option>
                   <option value="Liter">Liter</option>
+                  <option value="Zak">Zak</option>
                 </select>
               </div>
             </div>
