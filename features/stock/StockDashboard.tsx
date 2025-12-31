@@ -122,8 +122,18 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack, title, 
 
   const handleUsageChange = (itemId: string, field: 'quantity' | 'note', value: string) => {
     if (field === 'quantity') {
-      const numVal = parseFloat(value);
-      if (value !== '' && (isNaN(numVal) || numVal < 0)) return;
+      // Replace comma with dot for decimal support
+      const normalizedValue = value.replace(/,/g, '.');
+      const numVal = parseFloat(normalizedValue);
+      
+      // Allow empty string, valid number, or ending with dot (e.g. "1.")
+      if (value !== '' && isNaN(numVal) && value !== '.') return;
+      if (numVal < 0) return;
+
+      // Update value using the normalized format if needed, but keep user input for better UX if they are typing
+      // However, for consistency, we'll store the normalized version or handle the display
+      // Let's store normalized version to ensure math works later
+      value = normalizedValue;
     }
     
     setUsage(prev => ({
@@ -316,6 +326,7 @@ const StockDashboard: React.FC<StockDashboardProps> = ({ outlet, onBack, title, 
                   <input
                     type="number"
                     inputMode="decimal"
+                    step="any"
                     placeholder="0"
                     min="0"
                     value={val.quantity}
