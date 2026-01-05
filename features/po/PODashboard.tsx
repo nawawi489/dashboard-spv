@@ -70,6 +70,12 @@ const PODashboard: React.FC<PODashboardProps> = ({ outlet, onBack }) => {
     setSubmitting(true);
     setError(null);
     try {
+      console.log('Submitting PO Confirmation:', {
+        activeItem: active,
+        payloadId: active.id_transaksi,
+        payloadName: active.nama_barang
+      });
+
       const payload: ConfirmData = {
         id_transaksi: active.id_transaksi,
         id_barang: active.id_barang,

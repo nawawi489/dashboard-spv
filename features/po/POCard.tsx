@@ -13,7 +13,7 @@ const POCard: React.FC<POCardProps> = ({ data, onConfirm, isConfirmed }) => {
   return (
     <div className={`bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col h-full ${isConfirmed ? 'opacity-75 bg-slate-50' : ''}`}>
       <div className={`bg-gradient-to-r ${isConfirmed ? 'from-green-600 to-green-700' : 'from-blue-600 to-blue-700'} px-5 py-3 flex justify-between items-center`}>
-        <span className="text-white font-mono text-sm font-semibold tracking-wider opacity-90">#{data.id_transaksi}</span>
+        <span className="text-white font-mono text-sm font-semibold tracking-wider opacity-90">{data.id_barang || '-'}</span>
         <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full font-medium backdrop-blur-sm">{data.tanggal || 'PO'}</span>
       </div>
 
@@ -26,7 +26,7 @@ const POCard: React.FC<POCardProps> = ({ data, onConfirm, isConfirmed }) => {
               <span>{data.outlet}</span>
             </div>
           </div>
-          <span className="text-[11px] font-mono font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded">{data.id_barang || '-'}</span>
+          <span className="text-[11px] font-mono font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded">#{data.id_transaksi}</span>
         </div>
         <hr className="border-gray-100" />
         <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
