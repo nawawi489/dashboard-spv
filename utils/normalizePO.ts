@@ -20,6 +20,7 @@ export const normalizePOList = (raw: any): POItem[] => {
       supplier: String(item['NAMA SUPLIER'] ?? item.supplier ?? ''),
       id_barang: String(item['ID BARANG'] ?? item.id_barang ?? ''),
       satuan: String(item['SATUAN'] ?? item.satuan ?? ''),
+      tanggal: String(item['TANGGAL PO'] ?? item.tanggal ?? ''),
     }));
 };
 

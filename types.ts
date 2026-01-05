@@ -66,6 +66,7 @@ export interface POItem {
   supplier: string;
   id_barang?: string;
   satuan?: string;
+  tanggal?: string;
 }
 
 export interface ConfirmData {
